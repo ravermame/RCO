@@ -1,9 +1,20 @@
-export const authProvider = {
+import { AuthProvider } from "react-admin";
+
+interface User {
+    name: string;
+    password: string
+}
+
+export const authProvider: AuthProvider = {
     // called when the user attempts to log in
-    login: (user: any) => {
-        localStorage.setItem("user", JSON.stringify(user));
-        // accept all username/password combinations
-        return Promise.resolve({ redirectTo: '/dashboard' });
+    login: ({ name, password }: User) => {
+        const users: User[] = getUsers()
+        const user = users?.find((user: User) => user.name === name && user.password === password)
+        if (user) {
+            localStorage.setItem("user", JSON.stringify(user));
+            return Promise.resolve({ redirectTo: '/dashboard' });
+        }
+        return Promise.reject()
     },
     // called when the user clicks on the logout button
     logout: () => {
@@ -43,3 +54,12 @@ export const authProvider = {
     },
 
 };
+
+const getUsers = () => {
+    let allData: string | null = localStorage.getItem('ra-data-local-storage');
+    if (allData) {
+        const { users } = JSON.parse(allData);
+        return users
+    }
+    return [];
+}
